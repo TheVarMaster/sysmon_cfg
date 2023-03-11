@@ -1,0 +1,325 @@
+<Sysmon schemaversion="4.23">
+	<!-- версия 20.06.09 -->
+	<!-- захват MD5, SHA256 хеш запускаемого процесса -->
+	<HashAlgorithms>MD5,SHA256</HashAlgorithms>
+	<EventFiltering>
+
+		<ImageLoad onmatch="exclude">
+			<Signature condition="contains">microsoft</Signature>
+			<Image condition="contains">sysmon.exe</Image>
+			<Image condition="contains">\Program Files\Google\Chrome\Application\chrome.exe</Image>
+			<Signature condition="contains">windows</Signature>
+			<Signature condition="contains">Kaspersky Lab</Signature>
+			<Signature condition="contains">VMware</Signature>
+			<Signature condition="contains">Crypto-Pro</Signature>
+			<Signature condition="contains">Adobe Systems Incorporated</Signature>
+			<Signature condition="contains">Center of Financial Technologies CJSC</Signature>
+			<Signature condition="contains">Oracle America</Signature>
+			<Signature condition="contains">Google Inc</Signature>
+			<Signature condition="contains">Adobe Systems</Signature>
+			<Signature condition="contains">Security Code LLC</Signature>
+		</ImageLoad>
+
+		<ProcessCreate onmatch="exclude">
+			<CommandLine condition="contains">\Windows\system32\DllHost.exe /Processid</CommandLine> <!--Microsoft:Windows-->
+			<CommandLine condition="contains">\Windows\system32\SearchIndexer.exe /Embedding</CommandLine> 
+			<ParentCommandLine condition="begin with">%%SystemRoot%%\system32\csrss.exe ObjectDirectory=\Windows</ParentCommandLine>
+			<ParentImage condition="contains">\Windows\system32\SearchIndexer.exe</ParentImage>
+			<Image condition="contains">\Program Files\Windows Defender</Image> 
+			<Image condition="contains">\Windows\System32\MpSigStub.exe</Image> 
+			<Image condition="contains">\Windows\SoftwareDistribution\Download\Install\AM_Base</Image>
+			<Image condition="contains">\Windows\SoftwareDistribution\Download\Install\AM_Delta</Image>
+			<Image condition="contains">\Windows\SoftwareDistribution\Download\Install\AM_Engine</Image> 
+			<CommandLine condition="contains">\Windows\Microsoft.NET\Framework\v4.0.30319\ngen.exe</CommandLine>
+			<Image condition="contains">\Windows\Microsoft.NET\Framework64\v4.0.30319\mscorsvw.exe</Image>
+			<Image condition="contains">\Windows\Microsoft.NET\Framework\v4.0.30319\mscorsvw.exe</Image> 
+			<Image condition="contains">\Windows\Microsoft.Net\Framework64\v3.0\WPF\PresentationFontCache.exe</Image> 
+			<Image condition="contains">\Windows\Microsoft.Net\Framework64\v3.0\WPF\PresentationFontCache.exe</Image> 
+			<ParentCommandLine condition="contains">\Windows\Microsoft.NET\Framework64\v4.0.30319\ngentask.exe</ParentCommandLine>
+			<ParentImage condition="contains">\Windows\Microsoft.NET\Framework64\v4.0.30319\mscorsvw.exe</ParentImage>
+			<ParentImage condition="contains">\Windows\Microsoft.NET\Framework64\v4.0.30319\ngentask.exe</ParentImage>
+			<ParentImage condition="contains">\Windows\Microsoft.NET\Framework\v4.0.30319\mscorsvw.exe</ParentImage> 
+			<ParentImage condition="contains">\Windows\Microsoft.NET\Framework\v4.0.30319\ngentask.exe</ParentImage>
+			<ParentImage condition="contains">\Windows\Microsoft.NET\Framework\v4.0.30319\ngentask.exe</ParentImage>
+			<Image condition="end with">windows\system32\conhost.exe</Image>
+			<Image condition="end with">windows\System32\SearchFilterHost.exe</Image>
+			<Image condition="end with">Windows\System32\SearchProtocolHost.exe</Image>
+			<Image condition="end with">Windows\System32\dllhost.exe</Image>
+			<Image condition="end with">Windows\System32\audiodg.exe</Image>
+			<Image condition="end with">Windows\Sysmon.exe</Image>
+			<Image condition="end with">windows\system32\LogonUI.exe</Image>
+			<Image condition="end with">Windows\System32\winlogon.exe</Image>
+			<Image condition="end with">windows\system32\svchost.exe</Image>
+			<Image condition="end with">windows\explorer.exe</Image>
+			<Image condition="end with">windows\system32\lsass.exe</Image>
+			<Image condition="end with">Windows\System32\taskhost.exe</Image>
+			<Image condition="end with">Google\Update\GoogleUpdate.exe</Image>
+			<Image condition="end with">autorunsc.exe</Image>
+			<Image condition="end with">Windows\System32\consent.exe</Image>
+			<Image condition="end with">chrome.exe</Image>
+			<Image condition="end with">MpCmdRun.exe</Image>
+		</ProcessCreate>
+
+		<FileCreateTime onmatch="include" />
+
+		<RuleGroup name="Kaspersky Exclusion" groupRelation="or"><!-- Kaspersky constantly changes files -->
+			<FileCreateTime onmatch="exclude">
+				<Image condition="end with">\Kaspersky Lab\Kaspersky Security for Windows Server\kavfswp.exe</Image>
+				<Image condition="end with">\Kaspersky Lab\Kaspersky Endpoint Security for Windows\avp.exe</Image>
+			</FileCreateTime>
+		</RuleGroup>
+		
+		<RawAccessRead onmatch="include" />
+
+		<ProcessTerminate onmatch="include" />
+
+		<RuleGroup name="Injects Exclusion" groupRelation="or">
+		    <CreateRemoteThread onmatch="exclude">
+			    <SourceImage condition="is">C:\Windows\System32\wbem\WmiPrvSE.exe</SourceImage>
+			    <SourceImage condition="is">c:\windows\syswow64\wbem\wmiprvse.exe</SourceImage>
+			    <SourceImage condition="is">C:\Windows\System32\svchost.exe</SourceImage>
+			    <SourceImage condition="is">C:\Windows\System32\wininit.exe</SourceImage>
+			    <SourceImage condition="is">C:\Windows\System32\csrss.exe</SourceImage>
+			    <SourceImage condition="is">C:\Windows\System32\services.exe</SourceImage>
+			    <SourceImage condition="is">C:\Windows\System32\winlogon.exe</SourceImage>
+			    <SourceImage condition="is">C:\Windows\System32\audiodg.exe</SourceImage>
+			    <StartModule condition="is">C:\windows\system32\kernel32.dll</StartModule>
+			    <TargetImage condition="end with">Google\Chrome\Application\chrome.exe</TargetImage>
+		    </CreateRemoteThread>
+	    </RuleGroup>
+
+		<FileCreate onmatch="include">
+		<TargetFilename condition="begin with">C:\Windows\Tasks\</TargetFilename> <!--Microsoft:ScheduledTasks [ https://attack.mitre.org/wiki/Technique/T1053 ] -->													   
+		<TargetFilename condition="contains">c:\windows\apppatch</TargetFilename>
+		<TargetFilename condition="contains">microsoft\windows\start menu\programs\startup</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="contains">c:\windows\syswow32\wbem\</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="contains">c:\windows\syswow64\wbem\</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="contains">c:\windows\system32\tasks\</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="contains">c:\windows\syswow64\tasks\</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="contains">c:\windows\system32\fxstmp\</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="contains">c:\windows\syswow64\fxstmp\</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="contains">c:\windows\system32\spool\</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="contains">c:\windows\debug\</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="contains">c:\windows\tracing\</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="contains">c:\windows\ccm\inventory\</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="contains">c:\windows\serviceprofiles\</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="contains">c:\windows\system32\config\systemprofile\</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="contains">c:\windows\system32\com\</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="contains">c:\windows\syswow64\com\</TargetFilename>	<!-- Windows startup applications -->
+		<TargetFilename condition="end with">.ps1</TargetFilename> <!--PowerShell [ More information: http://www.hexacorn.com/blog/2014/08/27/beyond-good-ol-run-key-part-16/ ] -->
+			<TargetFilename condition="end with">.exe</TargetFilename>
+			<TargetFilename condition="end with">.dmp</TargetFilename>
+			<TargetFilename condition="end with">.ps1</TargetFilename>
+			<TargetFilename condition="end with">.hta</TargetFilename>
+			<TargetFilename condition="end with">.vbs</TargetFilename>
+			<TargetFilename condition="end with">.xlsm</TargetFilename> <!--Microsoft:Office:Excel: Macro-->
+			<TargetFilename condition="end with">.docx</TargetFilename> <!--Microsoft:Office:Word-->
+			<TargetFilename condition="end with">.doc</TargetFilename> <!--Microsoft:Office:Word-->
+			<TargetFilename condition="end with">.ace</TargetFilename>
+			<TargetFilename condition="end with">.xz</TargetFilename>
+			<TargetFilename condition="end with">.wrn</TargetFilename>
+			<TargetFilename condition="end with">.vbe</TargetFilename>
+			<TargetFilename condition="end with">.pif</TargetFilename>
+			<TargetFilename condition="end with">.cpl</TargetFilename>
+			<TargetFilename condition="end with">.cmd</TargetFilename>
+			<TargetFilename condition="end with">.pub</TargetFilename>
+			<TargetFilename condition="end with">.bat</TargetFilename>
+			<TargetFilename condition="end with">.wsf</TargetFilename>
+			<TargetFilename condition="end with">.epf</TargetFilename>
+			<TargetFilename condition="end with">.scr</TargetFilename>
+			<TargetFilename condition="end with">.lnk</TargetFilename>
+			<TargetFilename condition="end with">.mht</TargetFilename>
+			<TargetFilename condition="end with">.png</TargetFilename>
+			<TargetFilename condition="contains">\Startup</TargetFilename>
+			<TargetFilename condition="end with">.js</TargetFilename>
+			<TargetFilename condition="end with">.py</TargetFilename>
+			<TargetFilename condition="end with">.jse</TargetFilename>
+			<TargetFilename condition="end with">.dll</TargetFilename>
+			<TargetFilename condition="end with">.kirbi</TargetFilename>
+			<TargetFilename condition="end with">.wll</TargetFilename>
+			<TargetFilename condition="end with">.xll</TargetFilename>
+			<TargetFilename condition="end with">.mof</TargetFilename>
+			<TargetFilename condition="end with">.cs</TargetFilename>
+			<TargetFilename condition="end with">.csproj</TargetFilename>
+			<TargetFilename condition="end with">.proj</TargetFilename>
+			<TargetFilename condition="end with">.sct</TargetFilename>
+			<TargetFilename condition="end with">.xsl</TargetFilename>
+			<TargetFilename condition="contains">mimilsa</TargetFilename>
+			<TargetFilename condition="contains">Normal.dotm</TargetFilename>
+			<TargetFilename condition="contains">PERSONAL.XLSB</TargetFilename>
+			<TargetFilename condition="contains">amsi.dll</TargetFilename>
+			<TargetFilename condition="end with">.jsp</TargetFilename>
+			<TargetFilename condition="end with">.aspx</TargetFilename>
+			<TargetFilename condition="end with">.asp</TargetFilename>
+			<TargetFilename condition="contains">amsi.dll</TargetFilename>
+			<TargetFilename condition="contains">.bmof</TargetFilename>
+			<TargetFilename condition="contains">.fomb</TargetFilename>
+			<TargetFilename condition="contains">.bmf</TargetFilename>
+			<Image condition="end with">lsass.exe</Image>
+			<Image condition="end with">rundll32.exe</Image>
+		</FileCreate>
+		<FileCreate onmatch="exclude">
+			<TargetFilename condition="contains">\Microsoft\Office</TargetFilename>
+			<TargetFilename condition="contains">\Roaming\Microsoft\Windows\Recent\</TargetFilename>
+			<TargetFilename condition="end with">.log</TargetFilename>
+			<TargetFilename condition="begin with">C:\Windows\Installer\</TargetFilename> <!--Microsoft:Windows:Installer: Ignore MSI installer files caching-->
+			<Image condition="end with">MpCmdRun.exe</Image>
+		</FileCreate>
+		<RegistryEvent onmatch="include">
+		<!-- Office Trusted Documents hive: macros hunting -->
+		<TargetObject condition="contains">Security\Trusted Documents\TrustRecords</TargetObject>						
+		<!-- Persistence -->
+		<TargetObject condition="contains">hkcu\environment\userinitmprlogonscript</TargetObject> <!-- Logon Script Persistence https://attack.mitre.org/wiki/Technique/T1037 -->
+		<TargetObject condition="end with">system\currentcontrolset\control\session manager\appcertdlls</TargetObject> <!--AppCertDLLs  https://attack.mitre.org/wiki/Technique/T1182 --> 
+		<TargetObject condition="end with">microsoft\windows nt\currentversion\windows\appinit_dlls</TargetObject>	<!-- AppInit https://attack.mitre.org/wiki/Technique/T1103 --> 
+		<TargetObject condition="end with">microsoft\windows nt\currentversion\windows\loadappinit_dlls</TargetObject> <!-- AppInit https://attack.mitre.org/wiki/Technique/T1103 --> 
+		<TargetObject condition="end with">microsoft\windows nt\currentversion\windows\requiresignedappinit_dlls</TargetObject> <!-- AppInit https://attack.mitre.org/wiki/Technique/T1103 --> 
+		<TargetObject condition="contains">microsoft\windows nt\currentversion\appcompatflags\installedsdb</TargetObject> <!--Application Shimming https://attack.mitre.org/wiki/Technique/T1138 -->
+		<!-- HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Group Policy\State\<usersid>\Scripts-->
+		<TargetObject condition="contains">microsoft\windows\currentversion\group policy\state\s-1</TargetObject>		
+		<TargetObject condition="contains">microsoft\windows\currentversion\policies\explorer\run</TargetObject>
+		<TargetObject condition="end with">software\microsoft\windows nt\currentversion\winlogon\userinit</TargetObject>
+		<TargetObject condition="end with">software\microsoft\windows nt\currentversion\winlogon\shell</TargetObject>
+		<!-- HKLM\Software\Microsoft\Windows NT\CurrentVersion\Windows and HKLM\Software\Wow6432Node\Microsoft\Windows NT\CurrentVersion\Windows -->
+		<!-- HKLM + HKCU -->
+		<TargetObject condition="end with">microsoft\windows\currentversion\explorer\user shell folders\commonstartup\common startup</TargetObject>
+		<!-- Install SDB-->
+		<TargetObject condition="contains">microsoft\windows nt\currentversion\appcompatflags\custom</TargetObject>
+		<!-- Terminal Services -->
+		<TargetObject condition="contains">software\policies\microsoft\windows nt\terminal services</TargetObject>
+		<TargetObject condition="contains">system\currentcontrolset\control\terminal server</TargetObject>
+		<!-- LSA Protect -->
+		<TargetObject condition="contains">system\currentcontrolset\control\securityproviders</TargetObject>
+		<TargetObject condition="contains">system\currentcontrolset\control\lsa</TargetObject>
+			<TargetObject condition="contains">Windows\CurrentVersion\Run</TargetObject>
+			<TargetObject condition="contains">CurrentVersion\Windows\Run</TargetObject>
+			<TargetObject condition="contains">Microsoft\Windows NT\CurrentVersion\Winlogon</TargetObject>
+			<TargetObject condition="contains">Windows\CurrentVersion\RunOnce</TargetObject>
+			<TargetObject condition="contains">software\microsoft\windows\currentversion\runonceex</TargetObject>
+			<TargetObject condition="begin with">hklm\software\microsoft\windows\currentversion\group policy\scripts\shutdown</TargetObject>
+			<TargetObject condition="begin with">hklm\software\microsoft\windows\currentversion\group policy\scripts\startup</TargetObject>
+			<TargetObject condition="contains">microsoft\active setup</TargetObject>
+			<TargetObject condition="end with">microsoft\windows nt\currentversion\image file execution options\debugger</TargetObject>
+			<TargetObject condition="contains">Control\Terminal Server</TargetObject>
+			<TargetObject condition="contains">Microsoft\Windows NT\CurrentVersion\Winlogon</TargetObject>
+			<TargetObject condition="contains">Windows\CurrentVersion\Internet Settings\ProxyServer</TargetObject>
+			<TargetObject condition="contains">SecurityProviders\WDigest</TargetObject>
+			<TargetObject condition="contains">Account\Users</TargetObject>
+			<TargetObject condition="contains">Control\Lsa</TargetObject>
+			<TargetObject condition="contains">System\Setup</TargetObject>
+			<TargetObject condition="contains">\Control panel</TargetObject>
+			<TargetObject condition="contains">services\PortProxy\v4tov4\tcp</TargetObject>
+			<TargetObject condition="contains">Software\Classes\exefile\shell\runas\command</TargetObject>
+			<TargetObject condition="contains">Software\Microsoft\Windows\CurrentVersion\App Paths</TargetObject>
+			<TargetObject condition="contains">\Currentversion\Image File Execution Options\</TargetObject>
+			<TargetObject condition="contains">currentversion\silentprocessexit</TargetObject>
+			<TargetObject condition="contains">\CLSID\</TargetObject>
+			<TargetObject condition="contains">\*\</TargetObject>
+			<TargetObject condition="contains">\Environment</TargetObject>
+			<TargetObject condition="contains">Policies\Microsoft\Windows\CredentialsDelegation\</TargetObject>
+			<TargetObject condition="contains">\Windows Defender</TargetObject>
+			<TargetObject condition="contains">\AmsiEnable</TargetObject>
+			<TargetObject condition="contains">\Microsoft\Command Processor</TargetObject>
+			<TargetObject condition="contains">\Services\SysmonDrv\Parameters</TargetObject>
+			<TargetObject condition="contains">Microsoft\Windows NT\CurrentVersion\Ports</TargetObject>
+			<TargetObject condition="end with">system\currentcontrolset\control\session manager\appcertdlls</TargetObject>
+			<TargetObject condition="end with">microsoft\windows nt\currentversion\windows\appinit_dlls</TargetObject> 
+			<TargetObject condition="end with">microsoft\windows nt\currentversion\windows\loadappinit_dlls</TargetObject>
+			<TargetObject condition="end with">microsoft\windows nt\currentversion\windows\requiresignedappinit_dlls</TargetObject>
+			<TargetObject condition="contains">microsoft\windows nt\currentversion\appcompatflags\installedsdb</TargetObject>
+			<TargetObject condition="contains">Microsoft\Windows NT\CurrentVersion\Ports</TargetObject>
+		</RegistryEvent>
+		<RegistryEvent onmatch="exclude">
+			<Image condition="contains">\Program Files\Kaspersky Lab\</Image>
+		</RegistryEvent>
+
+
+		<ProcessAccess onmatch="include">
+			<TargetImage condition="contains">\Windows\system32\lsass.exe</TargetImage> 
+			<GrantedAccess condition="is">0x1010</GrantedAccess>
+			<GrantedAccess condition="is">0x1410</GrantedAccess>
+			<GrantedAccess condition="is">0x143a</GrantedAccess>
+			<GrantedAccess condition="is">0x1f0fff</GrantedAccess>
+			<GrantedAccess condition="is">0x1f1fff</GrantedAccess>
+			<GrantedAccess condition="is">0x1f2fff</GrantedAccess>
+			<GrantedAccess condition="is">0x1f3fff</GrantedAccess>
+		</ProcessAccess> 
+		<ProcessAccess onmatch="exclude">
+			<SourceImage condition="end with">vmware-authd.exe</SourceImage>
+			<SourceImage condition="end with">wmiprvse.exe</SourceImage>
+			<SourceImage condition="end with">avp.exe</SourceImage>
+			<SourceImage condition="end with">GoogleUpdate.exe</SourceImage> 
+			<SourceImage condition="end with">AdobeARM.exe</SourceImage>
+			<SourceImage condition="end with">taskmgr.exe</SourceImage>
+			<SourceImage condition="end with">\Microsoft Security Client\MsMpEng.exe</SourceImage>
+			<SourceImage condition="end with">\Windows Defender\MsMpEng.exe</SourceImage>
+			<GrantedAccess condition="is">0x1400</GrantedAccess>
+			<GrantedAccess condition="is">0x1401</GrantedAccess>
+			<GrantedAccess condition="is">0x1000</GrantedAccess>
+			<GrantedAccess condition="is">0x1418</GrantedAccess>
+		</ProcessAccess>
+
+		<DriverLoad onmatch="exclude">
+			<Signature condition="contains">microsoft</Signature> 
+			<Signature condition="contains">windows</Signature>
+			<Signature condition="begin with">Intel </Signature> 
+			<Signature condition="begin with">NVidia </Signature>
+		</DriverLoad>
+
+		<PipeEvent onmatch="exclude">
+			<Image condition="begin with">C:\Windows\SystemApps\Microsoft.Windows</Image>
+			<Image condition="is">C:\Windows\system32\SearchProtocolHost.exe</Image>
+			<Image condition="is">C:\Windows\Microsoft.NET\Framework\v4.0.30319\ngen.exe</Image>
+			<Image condition="is">C:\Windows\Microsoft.NET\Framework64\v4.0.30319\ngen.exe</Image>
+			<PipeName condition="is">\WRSVCPipe</PipeName>
+			<PipeName condition="is">\WRSynUM2</PipeName>
+			<Image condition="is">C:\Program Files (x86)\Webroot\WRSA.exe</Image>
+			<Image condition="is">C:\Program Files (x86)\Google\Chrome\Application\chrome.exe</Image>
+			<Image condition="is">C:\Program Files (x86)\Google\Update\GoogleUpdate.exe</Image>
+			<Image condition="end with">slack.exe</Image>
+			<Image condition="end with">wmiprvse.exe</Image>
+			<Image condition="end with">svchost.exe</Image>
+			<Image condition="end with">chrome.exe</Image>
+			<PipeName condition="is">\srvsvc</PipeName>
+			<PipeName condition="is">\wkssvc</PipeName>
+			<PipeName condition="is">\lsass</PipeName>
+			<PipeName condition="is">\MsFteWds</PipeName>
+			<PipeName condition="is">\EMET_Service</PipeName>
+			<PipeName condition="is">\eventlog</PipeName>
+			<PipeName condition="is">\winreg</PipeName>
+			<Image condition="image">EMET_Service.exe</Image>
+			<Image condition="end with">\Microsoft System Center\Operations Manager\Server\MonitoringHost.exe</Image>
+			<Image condition="end with">\Microsoft System Center\Operations Manager\Server\HealthService.exe</Image>
+			<Image condition="end with">\Microsoft System Center\Operations Manager\Server\cshost.exe</Image>
+			<Image condition="end with">\Microsoft System Center\Operations Manager\Server\Microsoft.Mom.Sdk.ServiceHost.exe</Image>
+			<Image condition="end with">\Microsoft System Center\Operations Manager\Server\MOMPerfSnapshotHelper.exe</Image>
+			<Image condition="end with">\Microsoft Monitoring Agent\Agent\MonitoringHost.exe</Image>
+		</PipeEvent>
+
+		<FileCreateStreamHash onmatch="include">
+			<TargetFilename condition="contains">Content.Outlook</TargetFilename>
+			<TargetFilename condition="contains">Downloads</TargetFilename>
+			<TargetFilename condition="contains">Temp\7z</TargetFilename> 
+			<TargetFilename condition="end with">.bat</TargetFilename> 
+			<TargetFilename condition="end with">.cmd</TargetFilename> 
+			<TargetFilename condition="end with">.hta</TargetFilename> 
+			<TargetFilename condition="end with">.lnk</TargetFilename> 
+			<TargetFilename condition="end with">.ps1</TargetFilename> 
+			<TargetFilename condition="end with">.ps2</TargetFilename> 
+			<TargetFilename condition="end with">.reg</TargetFilename>
+			<TargetFilename condition="end with">.vb</TargetFilename> 
+			<TargetFilename condition="end with">.vbe</TargetFilename> 
+			<TargetFilename condition="end with">.vbs</TargetFilename> 
+			<TargetFilename condition="end with">.exe</TargetFilename> 
+		</FileCreateStreamHash>
+
+		<FileCreateStreamHash onmatch="exclude">
+			<Image condition="image">avp.exe</Image>
+			<Image condition="image">chrome.exe</Image>
+		</FileCreateStreamHash>
+
+		<WmiEvent onmatch='exclude'>
+		</WmiEvent>
+	</EventFiltering>
+
+</Sysmon>
